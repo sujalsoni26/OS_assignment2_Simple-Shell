@@ -3,6 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 
+static char **history_list;
+int history_number = 0;
+
 void strip(char* str){
     if (str[strlen(str) - 1] == '\n') {
         str[strlen(str) - 1] = '\0';
@@ -13,6 +16,9 @@ char ** create_tokens(char *input){
     int no_of_tokens = 1024;
     int i = 0;
     char **tokens = malloc(sizeof(char*)* no_of_tokens);
+    if(tokens==NULL){
+        printf("Memory not allocated to tokens.");
+    }
     char *token = strtok(input, " ");
     while (token != NULL)
     {
@@ -25,10 +31,33 @@ char ** create_tokens(char *input){
     return tokens;
 }
 
+void creating_historylist(char* input){
+    if (history_list == NULL){
+        history_list=(char*)malloc(sizeof(char)*2048);
+
+        //checking if memory is allocated to history
+        if(history_list == NULL){
+            printf("Memory not allocated to history.");
+        }
+    }
+
+    //if you hit only enter it will not be stored
+    if(strcmp(input,"\n")){
+        char *copy;
+        copy = strdup(input);
+        history_list[history_number]=copy;
+        history_number++;
+    }
+}
+
 char * read_inp(){
     int size = 2048;
     char * input = (char *)malloc(sizeof(char) * 2048);
+    if (input == NULL){
+        printf("Memory not allocated to input");
+    }
     fgets(input, size , stdin);
+    creating_historylist(input);
     // printf("You entered: %s\n", input);
     return input;   
 }
@@ -65,6 +94,12 @@ void check_command(char ** command){
         }  
     }
 
+    if (strcmp(*(command+0), "history\n") == 0){
+        for(int k=0;k<history_number;k++){
+            printf("%s",history_list[k]);
+        }
+    }
+
         //creating arr to be passed in execv
         char *arr[1000];
         int j=0;
@@ -83,14 +118,20 @@ void check_command(char ** command){
         arr[j] = NULL;
 
         int status = fork();
-        if(status == 0){
-            execv(str, arr);
-        }      
-        else if (status < 0)
+        //checking for fork failure
+        if (status < 0)
         {
             printf("fork failed\n");
             exit(0);
-        } else {
+        }
+
+        //child process  to execute    
+        else  if(status == 0){
+            execv(str, arr);
+        }  
+
+        //parent process for the shell to continue running
+        else {
             int ret;
             int pid = wait(&ret);
 
@@ -101,13 +142,7 @@ void check_command(char ** command){
             }
 
         }
-    
-
 }
-
-
-
-
     
 
 int main(int argc, char const *argv[]){
