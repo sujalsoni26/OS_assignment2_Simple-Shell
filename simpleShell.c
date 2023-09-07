@@ -45,17 +45,73 @@ char* read_inp(){
 
         
    // }
-    return input;
-    
+    return input;   
 }
 
-char * check_command(char ** command){
+
+// char * copy_args(char ** command){
+//     char arr[1000];
+//     for (int i = 1; command[i] != NULL; i++){
+//         strcpy(arr + strlen(arr), command[i]);
+//         strcat(arr, " ");
+//     }
+//     return arr;
+// }
+
+
+
+void check_command(char ** command){
+    if (strcmp(*(command+0), "ls") == 0)
+    {
+        
+        
+
+        int status = fork();
+
+        if(status == 0){
+            char arr[1000];
+            for (int i = 1; command[i] != NULL; i++){
+                strcpy(arr + strlen(arr), *(command+i));
+                strcat(arr, " ");
+            }
+            arr[strcspn(arr, "\n")] = '\0';
+            printf(">>>>>>>>>>>>  %s\n", arr);
+
+            printf("innn ls   %d\n", getpid());
+            execl("/usr/bin/ls", "/usr/bin/ls", arr, NULL);
+            printf("after ls\n");
+            
+        }else if (status < 0)
+        {
+            printf("fork failed\n");
+            exit(0);
+        } else {
+            int ret;
+            int pid = wait(&ret);
+
+            if(WIFEXITED(ret)) {
+                printf("%d Exit =%d\n",pid,WEXITSTATUS(ret));
+            } else {
+                printf("Abnormal termination of %d\n",pid);
+            }
+
+            printf("inside parent\n");
+        }
+        
+    }
+
     if (strcmp(*(command+0), "ls\n") == 0)
     {
+
+    
+
         int status = fork();
+        
+
         if(status == 0){
+
             printf("innn ls   %d\n", getpid());
-            execl("/usr/bin/ls", "/usr/bin/ls",  NULL);
+            execl("/usr/bin/ls", "/usr/bin/ls", NULL);
             printf("after ls\n");
         }
         else if (status < 0)
@@ -73,32 +129,52 @@ char * check_command(char ** command){
             }
 
             printf("inside parent\n");
-            sleep(2);
         }
         
     }
     
     if (strcmp(*(command+0), "echo") == 0)
     {
-        char * arr[1000];
+        char arr[1000];
         //printf("%ld       %ld", sizeof(command), sizeof(*(command+0)));
-        for (int i = 1; arr[i] != NULL; i++)
+
+        int status = fork();
+        if(status == 0){
+            for (int i = 1; command[i] != NULL; i++){
+                strcpy(arr + strlen(arr), command[i]);
+                strcat(arr, " ");
+        }
+
+            printf(">>>>>>>>>>>>>>      %s \n", arr);
+            printf("innn echo\n");
+            execl("/usr/bin/echo", "/usr/bin/echo", arr, NULL);
+            printf("\nafter echo\n");
+        }
+        else if (status < 0)
         {
-            arr[i] = *(command+i);
+            printf("fork failed\n");
+            exit(0);
+        } else {
+            int ret;
+            int pid = wait(&ret);
+
+            if(WIFEXITED(ret)) {
+                printf("%d Exit =%d\n",pid,WEXITSTATUS(ret));
+            } else {
+                printf("Abnormal termination of %d\n",pid);
+            }
+
+            printf("inside parent\n");
         }
         
-        printf("innn echo\n");
-        execl("/usr/bin/echo", "/usr/bin/echo", *arr, NULL);
-        printf("\nafter echo\n");
-        // for (int j = 0; arr[j] != NULL; j++)
-        // {
-        //     printf("%s ", *(arr+j));
-        // }
+        //printf("%s ", arr);
+
         
     }
     //printf("%d \n", strcmp(*(command+0), "sujal"));
-    return command[0];
+    // return command[0];
 }
+
 
 int main(int argc, char const *argv[])
 {
@@ -111,7 +187,7 @@ int main(int argc, char const *argv[])
         }
         char ** tok = create_tokens(inp);
         //printf(">>>>>>>>>>>>>>>>>   %ld\n", sizeof(tok));
-        char *test = check_command(tok);
+        check_command(tok);
     }
     
     
