@@ -111,8 +111,7 @@ void check_command(char ** command){
     }
     
     
-    if (strcmp(*(command+0), "echo") == 0)
-    {
+    if (strcmp(*(command+0), "echo") == 0){
         char arr[1000];
         //printf("%ld       %ld", sizeof(command), sizeof(*(command+0)));
 
@@ -123,7 +122,7 @@ void check_command(char ** command){
                 strcat(arr, " ");
         }
 
-            //printf(">>>>>>>>>>>>>>      %s \n", arr);
+            printf(">>>>>>>>>>>>>>      %s \n", arr);
             //printf("innn echo\n");
             execl("/usr/bin/echo", "/usr/bin/echo", arr, NULL);
             //printf("\nafter echo\n");
@@ -141,11 +140,69 @@ void check_command(char ** command){
             } else {
                 printf("Abnormal termination of %d\n",pid);
             }
+            //printf("inside parent\n");
+        }
+    }
+
+    if (strcmp(*(command+0), "wc") == 0){
+        //printf("%d   ", strcmp(*(command+0), "wc"));
+        char *arr[1000];
+        //printf("%ld       %ld", sizeof(command), sizeof(*(command+0)));
+
+        int j=0;
+        for (int i = 0; command[i] != NULL; i++){
+            if (j == 0)
+            {
+                arr[j] = "/usr/bin/wc";
+                j++;
+            }
+            else{
+                arr[j] = strdup(command[i]);
+                strip(arr[j]);
+                j++;
+            }
+        }
+        arr[j] = NULL;
+
+        // for (int i = 0; arr[i] != NULL; i++)
+        // {
+        //     printf("%d   %s  ", i, arr[i]);
+        // }
+
+        int status = fork();
+        if(status == 0){
+            // int j=0;
+            // for (int i = 1; command[i] != NULL; i++){
+            //     strcpy(arr[j], command[i]);
+            //     j++;
+            execv("/usr/bin/wc", arr);
+        }      
+        else if (status < 0)
+        {
+            printf("fork failed\n");
+            exit(0);
+        } else {
+            int ret;
+            int pid = wait(&ret);
+
+            if(WIFEXITED(ret)) {
+                //printf("%d Exit =%d\n",pid,WEXITSTATUS(ret));
+            } else {
+                printf("Abnormal termination of %d\n",pid);
+            }
 
             //printf("inside parent\n");
         }
+    }
+
+
+
+
 }
-}
+
+
+
+
     
 
 int main(int argc, char const *argv[]){
