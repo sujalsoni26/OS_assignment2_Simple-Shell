@@ -3,53 +3,10 @@
 #include <string.h>
 #include <unistd.h>
 
-// char * read_inp(void){
-//         int i = 0;
-//         int size = 2048;
-//         char * input = (char *)malloc(sizeof(char) * 2048);
-//         char c;
-
-//         // Read input by char by char
-
-
-//         c = getchar();
-//         do
-//         {
-//             if (c != '\n')
-//             {
-//                 input[i] = c;
-
-//                 // Reallocate buffer as and when needed
-//                 if (i >= size){
-//                         size += 64;
-//                         input = realloc(input, size);
-//                 }
-
-//                 i++;
-//                 c = getchar();
-//             }
-            
-//         } while (c != EOF && c!='\n');
-        
-//         // while (c != EOF && c != '\n'){
-//         //         input[i] = c;
-
-//         //         // Reallocate buffer as and when needed
-//         //         if (iition >= buf_size){
-//         //                 buf_size += 64;
-//         //                 command = realloc(command, buf_size);
-//         //         }
-
-//         //         iition++;
-//         //         c = getchar();
-//         // }
-//         return input;
-// }
-
-char ** create_tokens(char input){
+char ** create_tokens(char *input){
     int no_of_tokens = 1024;
     int i = 0;
-    char **tokens = malloc(sizeof(char)* no_of_tokens);
+    char **tokens = malloc(sizeof(char*)* no_of_tokens);
     char *token = strtok(input, " ");
     while (token != NULL)
     {
@@ -65,58 +22,80 @@ char ** create_tokens(char input){
     }
     
     return tokens;
-    
-
 }
 
 char* read_inp(){
     int size = 2048;
     char * input = (char *)malloc(sizeof(char) * 2048);
     
-    while (1)
-    {
+    // while (1)
+    // {
         printf(">> ");
 
         fgets(input, size , stdin);
-        char str[] = "exit\n";
-        // printf("%ld     %d\n",sizeof(input), size);
+        //char str[] = "exit\n";
+  
 
-        // if (sizeof(input) > sizeof(char)*size)
-        // {
-        //     size += 1024;
-        //     input = realloc(input, size);
+        // if (strcmp(input, str) == 0) {
+        //     printf("innn\n");
+        //     //break;
         // }
-       // printf("%ld     %d",sizeof(input), size);
-    
-        //printf("%d\n",strcmp(input,str));
-
-        if (strcmp(input, str) == 0) {
-            printf("innn\n");
-            break;
-        }
 
         printf("You entered: %s\n", input);
 
-        create_tokens(input);
-    }
+        
+   // }
     return input;
     
 }
 
-
-
+char * check_command(char ** command){
+    if (strcmp(*(command+0), "ls\n") == 0)
+    {
+        printf("innn ls\n");
+        execl("/usr/bin/ls", "/usr/bin/ls",  NULL);
+        printf("after ls\n");
+    }
+    
+    if (strcmp(*(command+0), "echo") == 0)
+    {
+        char * arr[sizeof(command)/sizeof(*(command+0))];
+        printf("%ld       %ld", sizeof(command), sizeof(*(command+0)));
+        for (int i = 1; i < arr[i] != NULL; i++)
+        {
+            arr[i] = *(command+i);
+        }
+        
+        // printf("innn echo\n");
+        // execl("/usr/bin/echo", "/usr/bin/echo", "Hello I am Sujal",  NULL);
+        // printf("\nafter echo\n");
+        for (int j = 0; j < arr[j] != NULL; j++)
+        {
+            printf("%s ", *(arr+j));
+        }
+        
+    }
+    //printf("%d \n", strcmp(*(command+0), "sujal"));
+    return command[0];
+}
 
 int main(int argc, char const *argv[])
 {
-    // while (1)
-    // {
-    //     char * ch = read_inp();
-    //     // printf("%s\n",ch);
-    // }
-    read_inp();
+    while (1)
+    {
+        char * inp = read_inp();
+        if (strcmp(inp, "exit\n") == 0) {
+            //printf("innn\n");
+            break;
+        }
+        char ** tok = create_tokens(inp);
+        printf(">>>>>>>>>>>>>>>>>   %ld\n", sizeof(tok));
+        char *test = check_command(tok);
+    }
+    
+    
 
-    
-    
+
     return 0;
 }
 
