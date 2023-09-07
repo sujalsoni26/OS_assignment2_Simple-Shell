@@ -52,27 +52,48 @@ char* read_inp(){
 char * check_command(char ** command){
     if (strcmp(*(command+0), "ls\n") == 0)
     {
-        printf("innn ls\n");
-        execl("/usr/bin/ls", "/usr/bin/ls",  NULL);
-        printf("after ls\n");
+        int status = fork();
+        if(status == 0){
+            printf("innn ls   %d\n", getpid());
+            execl("/usr/bin/ls", "/usr/bin/ls",  NULL);
+            printf("after ls\n");
+        }
+        else if (status < 0)
+        {
+            printf("fork failed\n");
+            exit(0);
+        } else {
+            int ret;
+            int pid = wait(&ret);
+
+            if(WIFEXITED(ret)) {
+                printf("%d Exit =%d\n",pid,WEXITSTATUS(ret));
+            } else {
+                printf("Abnormal termination of %d\n",pid);
+            }
+
+            printf("inside parent\n");
+            sleep(2);
+        }
+        
     }
     
     if (strcmp(*(command+0), "echo") == 0)
     {
-        char * arr[sizeof(command)/sizeof(*(command+0))];
-        printf("%ld       %ld", sizeof(command), sizeof(*(command+0)));
-        for (int i = 1; i < arr[i] != NULL; i++)
+        char * arr[1000];
+        //printf("%ld       %ld", sizeof(command), sizeof(*(command+0)));
+        for (int i = 1; arr[i] != NULL; i++)
         {
             arr[i] = *(command+i);
         }
         
-        // printf("innn echo\n");
-        // execl("/usr/bin/echo", "/usr/bin/echo", "Hello I am Sujal",  NULL);
-        // printf("\nafter echo\n");
-        for (int j = 0; j < arr[j] != NULL; j++)
-        {
-            printf("%s ", *(arr+j));
-        }
+        printf("innn echo\n");
+        execl("/usr/bin/echo", "/usr/bin/echo", *arr, NULL);
+        printf("\nafter echo\n");
+        // for (int j = 0; arr[j] != NULL; j++)
+        // {
+        //     printf("%s ", *(arr+j));
+        // }
         
     }
     //printf("%d \n", strcmp(*(command+0), "sujal"));
@@ -89,7 +110,7 @@ int main(int argc, char const *argv[])
             break;
         }
         char ** tok = create_tokens(inp);
-        printf(">>>>>>>>>>>>>>>>>   %ld\n", sizeof(tok));
+        //printf(">>>>>>>>>>>>>>>>>   %ld\n", sizeof(tok));
         char *test = check_command(tok);
     }
     
