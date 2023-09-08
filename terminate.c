@@ -73,12 +73,16 @@ void check_command(char ** command){
     clock_t start;
     clock_t end; 
     double duration;
+    time_t starttime;
+    time_t endtime;
     char dur[50]; 
     process_pid[process_no][0]=history_list[process_no];
     
     if (strcmp(*(command+0), "ls\n") == 0){
         start = clock();
-        process_pid[process_no][1]=ctime(&start);
+       
+        time(&starttime);
+        process_pid[process_no][1]=ctime(&starttime);
         int status = fork();
         
         //checking for fork failure
@@ -105,9 +109,10 @@ void check_command(char ** command){
             if(WIFEXITED(ret)) {
                 pid = getpid();
                 process_pid[process_no][2]=pid;
+                time(&endtime);
+                process_pid[process_no][3] =ctime(&endtime);
                 end = clock();
-                process_pid[process_no][3] =ctime(&end);
-                duration = (double)(end-start)/CLOCKS_PER_SEC;
+                duration = (double)(end - start)/CLOCKS_PER_SEC;
                 snprintf(dur,sizeof(dur),"%f",duration);
                 process_pid[process_no][4]=dur;
                 // printf("%d Exit =%d\n",pid,WEXITSTATUS(ret));
@@ -124,9 +129,9 @@ void check_command(char ** command){
     }
 
     //creating arr to be passed in execv
-
     start = clock();
-    process_pid[process_no][1]=ctime(&start);
+    time(&starttime);
+    process_pid[process_no][1]=ctime(&starttime);
     char *arr[1000];
     int j=0;
     for (int i = 0; command[i] != NULL; i++){
@@ -164,8 +169,9 @@ void check_command(char ** command){
         if(WIFEXITED(ret)) {
             pid = getpid();
             process_pid[process_no][2]=pid;
+            time(&endtime);
             end = clock();
-            process_pid[process_no][3] =ctime(&end);
+            process_pid[process_no][3] =ctime(&endtime);
             duration = (double)(end-start)/CLOCKS_PER_SEC;
             snprintf(dur,sizeof(dur),"%f",duration);
             process_pid[process_no][4]=dur;
