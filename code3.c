@@ -3,6 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 
+static char **history_list;
+int history_number = 0;
+
 void strip(char* str){
     if (str[strlen(str) - 1] == '\n') {
         str[strlen(str) - 1] = '\0';
@@ -13,6 +16,9 @@ char ** create_tokens(char *input){
     int no_of_tokens = 1024;
     int i = 0;
     char **tokens = malloc(sizeof(char*)* no_of_tokens);
+    if(tokens==NULL){
+        printf("Memory not allocated to tokens.");
+    }
     char *token = strtok(input, " ");
     while (token != NULL)
     {
@@ -21,19 +27,37 @@ char ** create_tokens(char *input){
         token = strtok(NULL, " ");
     }    
     tokens[i] = NULL;
-
-    // for (int j = 0; j <i ; j++)
-    // {
-    //     printf("%s \n", *(tokens+j));
-    // }
-    
+   
     return tokens;
+}
+
+void creating_historylist(char* input){
+    if (history_list == NULL){
+        history_list=(char*)malloc(sizeof(char)*2048);
+
+        //checking if memory is allocated to history
+        if(history_list == NULL){
+            printf("Memory not allocated to history.");
+        }
+    }
+
+    //if you hit only enter it will not be stored
+    if(strcmp(input,"\n")){
+        char *copy;
+        copy = strdup(input);
+        history_list[history_number]=copy;
+        history_number++;
+    }
 }
 
 char * read_inp(){
     int size = 2048;
     char * input = (char *)malloc(sizeof(char) * 2048);
+    if (input == NULL){
+        printf("Memory not allocated to input");
+    }
     fgets(input, size , stdin);
+    creating_historylist(input);
     // printf("You entered: %s\n", input);
     return input;   
 }
@@ -41,8 +65,10 @@ char * read_inp(){
 void check_command(char ** command){
     char str[1000] = "/usr/bin/";
     strcat(str, *(command+0));
+   
+    //printf("%d  %d\n", command[0][0], command[0][1]);
+
     if (strcmp(*(command+0), "ls\n") == 0){
-        // printf("in ls.");
         int status = fork();
         //checking for fork failure
         if (status < 0)
@@ -64,71 +90,117 @@ void check_command(char ** command){
             int pid = wait(&ret);
 
             if(WIFEXITED(ret)) {
-                // printf("%d Exit =%d\n",pid,WEXITSTATUS(ret));
+                return;
             } else {
                 printf("Abnormal termination of %d\n",pid);
             }
-
-            // printf("inside parent\n");
-            // sleep(2);
         }  
     }
 
 
-    if (strcmp(*(command+0), "wc") == 0){
-        //printf("%d   ", strcmp(*(command+0), "wc"));
-        char *arr[1000];
-        //printf("%ld       %ld", sizeof(command), sizeof(*(command+0)));
 
+    if (strcmp(*(command+0), "history\n") == 0){
+        for(int k=0;k<history_number;k++){
+            printf("%s",history_list[k]);
+        }
+    }
+
+    if (command[0][0] == 46 && command[0][1] == 47)
+    {
+        //creating array of args.
+        char strr[1000] = "";
+        strcat(strr, *(command+0));
+        strip(strr);
+
+        char *arr[1000];
         int j=0;
-        for (int i = 0; command[i] != NULL; i++){
-            if (j == 0)
-            {
-                arr[j] = str;
-                j++;
-            }
-            else{
-                arr[j] = strdup(command[i]);
-                strip(arr[j]);
-                j++;
-            }
+        for (int i = 1; command[i] != NULL; i++){
+            
+            arr[j] = strdup(command[i]);
+            strip(arr[j]);
+            j++;
+            
         }
         arr[j] = NULL;
-
-        // for (int i = 0; arr[i] != NULL; i++)
-        // {
-        //     printf("%d   %s  ", i, arr[i]);
-        // }
-
+        
         int status = fork();
-        if(status == 0){
-            // int j=0;
-            // for (int i = 1; command[i] != NULL; i++){
-            //     strcpy(arr[j], command[i]);
-            //     j++;
-            execv(str, arr);
-        }      
-        else if (status < 0)
+    //checking for fork failure
+        if (status < 0)
         {
             printf("fork failed\n");
             exit(0);
-        } else {
+        }
+
+        //child process  to execute    
+        else  if(status == 0){
+            execvp(strr, arr);
+            return;
+        }  
+
+        //parent process for the shell to continue running
+        else {
             int ret;
             int pid = wait(&ret);
 
             if(WIFEXITED(ret)) {
-                //printf("%d Exit =%d\n",pid,WEXITSTATUS(ret));
+                return;
             } else {
                 printf("Abnormal termination of %d\n",pid);
             }
+        }        
+    }
+    
 
+        //creating arr to be passed in execv
+    char *arr[1000];
+    int j=0;
+    for (int i = 0; command[i] != NULL; i++){
+        if (j == 0)
+        {
+            arr[j] = str;
+            j++;
+        }
+        else{
+            arr[j] = strdup(command[i]);
+            strip(arr[j]);
+            j++;
         }
     }
+    arr[j] = NULL;
 
+
+    // for (int i = 0; arr[i] != NULL; i++)
+    //     {
+    //         printf("%d   %s  \n", i, arr[i]);
+    //     }
+
+    int status = fork();
+    //checking for fork failure
+    if (status < 0)
+    {
+        printf("fork failed\n");
+        exit(0);
+    }
+
+    //child process  to execute    
+    else  if(status == 0){
+        execv(str, arr);
+    }  
+
+    //parent process for the shell to continue running
+    else {
+        int ret;
+        int pid = wait(&ret);
+
+        if(WIFEXITED(ret)) {
+            return;
+        } else {
+            printf("Abnormal termination of %d\n",pid);
+        }
+
+    }
 }
-
-
-
+    
 
     
 
