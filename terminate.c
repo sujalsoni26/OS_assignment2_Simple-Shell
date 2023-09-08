@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <time.h>
 
-static char *process_pid[1000][4];
+static char *process_pid[1000][5];
 static char **history_list;
 int history_number = 0;
 int process_no =0;
@@ -71,12 +71,14 @@ void check_command(char ** command){
     strcat(str, *(command+0));
     pid_t pid;
     clock_t start;
-    clock_t end;  
+    clock_t end; 
+    double duration;
+    char dur[50]; 
     process_pid[process_no][0]=history_list[process_no];
     
     if (strcmp(*(command+0), "ls\n") == 0){
         start = clock();
-        process_pid[process_no][1]=(long)start;
+        process_pid[process_no][1]=ctime(&start);
         int status = fork();
         
         //checking for fork failure
@@ -104,7 +106,10 @@ void check_command(char ** command){
                 pid = getpid();
                 process_pid[process_no][2]=pid;
                 end = clock();
-                process_pid[process_no][3] =(long)end;
+                process_pid[process_no][3] =ctime(&end);
+                duration = (double)(end-start)/CLOCKS_PER_SEC;
+                snprintf(dur,sizeof(dur),"%f",duration);
+                process_pid[process_no][4]=dur;
                 // printf("%d Exit =%d\n",pid,WEXITSTATUS(ret));
             } else {
                 printf("Abnormal termination of %d\n",pid);
@@ -121,7 +126,7 @@ void check_command(char ** command){
     //creating arr to be passed in execv
 
     start = clock();
-    process_pid[process_no][1]=(long)start;
+    process_pid[process_no][1]=ctime(&start);
     char *arr[1000];
     int j=0;
     for (int i = 0; command[i] != NULL; i++){
@@ -160,7 +165,10 @@ void check_command(char ** command){
             pid = getpid();
             process_pid[process_no][2]=pid;
             end = clock();
-            process_pid[process_no][3] =(long)end;
+            process_pid[process_no][3] =ctime(&end);
+            duration = (double)(end-start)/CLOCKS_PER_SEC;
+            snprintf(dur,sizeof(dur),"%f",duration);
+            process_pid[process_no][4]=dur;
             //printf("%d Exit =%d\n",pid,WEXITSTATUS(ret));
         } else {
             printf("Abnormal termination of %d\n",pid);
@@ -174,10 +182,10 @@ void check_command(char ** command){
 void terminate(){
     for (int j=0;j<process_no;j++){
         printf("Command: %s",process_pid[j][0]);
-        printf("Start time: %ld\n",process_pid[j][1]);
+        printf("Start time: %s",process_pid[j][1]);
         printf("Process id: %d\n",process_pid[j][2]);
-        printf("End time: %ld\n",process_pid[j][3]);
-        // printf("Duration: %f\n",(double)(process_pid[process_no][3]-process_pid[process_no][1])/CLOCKS_PER_SEC);
+        printf("End time: %s",process_pid[j][3]);
+        printf("Duration: %s\n",process_pid[j][4]);
         printf("\n");
     }
     return;
