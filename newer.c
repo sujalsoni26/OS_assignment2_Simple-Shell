@@ -7,6 +7,11 @@
 static char **history_list;
 int history_number = 0;
 
+void cleanup(){
+    free(history_list);
+    history_number=0;
+}
+
 void strip(char* str){
     if (str[strlen(str) - 1] == '\n') {
         str[strlen(str) - 1] = '\0';
@@ -78,41 +83,12 @@ int count_pipes(char **command){
 void check_command(char ** command){
     int no_of_pipes = count_pipes(command);
     char str[1000] = "/usr/bin/";
+    strcat(str, *(command+0));
+    strip(str);
 
     //normal commands like ls,ls /home,cat abx.txt will be executed here
     if (no_of_pipes == 0){
-        strcat(str, *(command+0));
-        if (strcmp(*(command+0), "ls\n") == 0){
-            int status = fork();
-
-            //checking for fork failure
-            if (status < 0)
-            {
-                printf("fork failed\n");
-                exit(0);
-            }
-            //child process for ls to execute
-            else if(status == 0){           
-                execl("/usr/bin/ls", "/usr/bin/ls",  NULL);
-                printf("This statement should not be printed.\n");
-            }
-            //parent process for the shell to continue running
-            else  {
-                // printf("Parent process is waiting\n");
-                int ret;
-                int pid = wait(&ret);
-
-                if(WIFEXITED(ret)) {
-                    // printf("parent process ends\n");
-                    return;
-                } else {
-                    printf("Abnormal termination of %d\n",pid);
-                }
-            }  
-        }
-
-
-        else if (strcmp(*(command+0), "history\n") == 0){
+        if (strcmp(*(command+0), "history\n") == 0){
             for(int k=0;k<history_number;k++){
                 printf("%s",history_list[k]);
             }
@@ -408,7 +384,6 @@ void check_command(char ** command){
         return;
 }    
 
-
 int main(int argc, char const *argv[]){
     char cwd[500];
     printf("Shell Initialised\n");
@@ -429,6 +404,9 @@ int main(int argc, char const *argv[]){
         }
         char ** tok = create_tokens(inp);
         check_command(tok);
+        free(tok);
+        free(inp);
     }
+    cleanup();
     return 0;
 }
