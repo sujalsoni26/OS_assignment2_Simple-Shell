@@ -78,11 +78,13 @@ int count_pipes(char **command){
 void check_command(char ** command){
     int no_of_pipes = count_pipes(command);
     char str[1000] = "/usr/bin/";
+
+    //normal commands like ls,ls /home,cat abx.txt will be executed here
     if (no_of_pipes == 0){
         strcat(str, *(command+0));
-        //printf("%d  %d\n", command[0][0], command[0][1]);
         if (strcmp(*(command+0), "ls\n") == 0){
             int status = fork();
+
             //checking for fork failure
             if (status < 0)
             {
@@ -90,8 +92,7 @@ void check_command(char ** command){
                 exit(0);
             }
             //child process for ls to execute
-            else if(status == 0){
-                // printf("Process id:  %d\n", getpid());            
+            else if(status == 0){           
                 execl("/usr/bin/ls", "/usr/bin/ls",  NULL);
                 printf("This statement should not be printed.\n");
             }
@@ -185,12 +186,6 @@ void check_command(char ** command){
             }
             arr[j] = NULL;
 
-
-            // for (int i = 0; arr[i] != NULL; i++)
-            //     {
-            //         printf("%d   %s  \n", i, arr[i]);
-            //     }
-
             int status = fork();
             //checking for fork failure
             if (status < 0)
@@ -218,9 +213,10 @@ void check_command(char ** command){
             }
         }  
     }
+    
+    //commands like cat abc.txt | wc -l will be executed here
     else{
         int count = no_of_pipes;
-        printf("in the else part.\n");
         int fd[count][2];
         for (int p = 0; p < count; p++)
         {
@@ -230,7 +226,6 @@ void check_command(char ** command){
                 return;
             } 
         }
-        //int a = count;
         int q = 0;
         int j = 0;
         int i = 0;
@@ -242,9 +237,7 @@ void check_command(char ** command){
         for (i ; command[i][0] != 124; i++){
             if (j == 0)
             {
-                //printf("Hellllllooooo\n");
                 strcat(temp, *(command+i));
-                //printf("str ====  %s\n", temp);
                 strip(temp);
                 arr[j] = temp;
                 j++;
@@ -258,14 +251,6 @@ void check_command(char ** command){
 
         }
         arr[j] = NULL;
-        
-        printf(">>>>>  1st Child  \n");
-       //printf("a ========== %d\n", a);
-        for (int u = 0; arr[u] != NULL; u++)
-            {
-                printf("%d   %s  \n", u, arr[u]);
-            }
-        printf("value of q in 1st: %d\n",q);
         int status1 = fork();
 
         if (status1 < 0)
@@ -277,7 +262,7 @@ void check_command(char ** command){
         {
             
             for (int e = 0; e < count; e++){
-                if (e == 0)
+                if (e != 0)
                 {
                     close(fd[e][0]);
                     close(fd[e][1]);
@@ -291,53 +276,31 @@ void check_command(char ** command){
             execv(temp, arr);
             }
         }
-        printf("1111111111111\n");
         i++;
         q++;
         
-       
-        
-        //printf("a before while ========== %d\n", a);
         
         for(int g = 0; g < (no_of_pipes-1); g++){
-            printf("Innnnn for loop\n");
-
             j = 0;
             char temp2[1000] = "/usr/bin/";
             char *arr2[1000];
-
-           // printf("Next command ========== %s\n ,,,,,,,,,,,,,, %s\n,,,,,,,,,,,,,,,,%s\n,,,,,,,,,,,,,,,,%s\n,,,,,,,,,,,,,,,,%s\n,,,,,,,,,,,,,,,,%s\n",*(command+2), *(command+3), *(command+4), *(command+5), *(command+6), *(command+7));
 
             for (i ; command[i][0] != 124; i++){
                 if (j == 0)
                 {
                     strcat(temp2, *(command+i));
                     strip(temp2);
-                    //printf(" ========  %s\n", temp2);
                     arr2[j] = temp2;
                     j++;
                 }
                 else{
-                    //printf("innnnn elseeee\n");
-                    //printf("qqqqqqqqq = %d\n", command[i][0]);
                     arr2[j] = strdup(command[i]);
                     strip(arr2[j]);
                     j++;
                 }
-                //printf("i =====  %d\n", i);
             }
-            //printf("Outside fol loop\n");
             arr2[j] = NULL;
-
-
-            printf(">>>>>  2nd Child  \n");
-            //printf("a ========== %d\n", a);
-            for (int u = 0; arr2[u] != NULL; u++)
-            {
-                printf("%d   %s  \n", u, arr2[u]);
-            }
             
-            printf("value of q in 2nd: %d\n",q);
             int status2 = fork();
 
             if (status2 < 0)
@@ -368,12 +331,11 @@ void check_command(char ** command){
                     
                 execv(temp2, arr2);
             }
-            printf("222222222222222\n");
             i++;
             q++;
             
         }
-//-------------------------------------------------------------------------
+
             j = 0;
             q--;
             char temp3[1000] = "/usr/bin/";
@@ -392,20 +354,9 @@ void check_command(char ** command){
                     strip(arr3[j]);
                     j++;
                 }
-
-
             }
             arr3[j] = NULL;
 
-
-            printf(">>>>>  3rd Child  \n");
-            //printf("a ========== %d\n", a);
-            for (int u = 0; arr3[u] != NULL; u++)
-            {
-                printf("%d   %s  \n", u, arr3[u]);
-            }
-            
-            printf("value of q in 3rd: %d\n",q);
             int status3 = fork();
 
             if (status3 < 0)
@@ -415,9 +366,7 @@ void check_command(char ** command){
             }
             else if (status3 == 0)
             {
-                
-                //dup2(fd[q][0], STDIN_FILENO);
-                dup2(fd[q-1][0], STDIN_FILENO);
+                dup2(fd[q][0], STDIN_FILENO);
 
                 for (int e = 0; e < count; e++){
                     if (e != q)
@@ -426,22 +375,11 @@ void check_command(char ** command){
                         close(fd[e][1]);
                     }
                 }
-
-                
-                // if (q-1 >= count)
-                // {
-                //     close(fd[q][1]);
-                //     close(fd[0][0]);
-                // }else{
-                //     close(fd[q][1]);
-                //     close(fd[q+1][0]);
-                // } 
                 
                 close(fd[q][1]);
                 close(fd[q][0]);    
                 execv(temp3, arr3);
             }
-            printf("333333333333333\n");
             for (int z = 0; z < count; z++) {
                 close(fd[z][0]);
                 close(fd[z][1]);
@@ -454,10 +392,6 @@ void check_command(char ** command){
         }
 }    
 
-    
-    
-
-    
 
 int main(int argc, char const *argv[]){
     char cwd[500];
@@ -479,7 +413,6 @@ int main(int argc, char const *argv[]){
         }
         char ** tok = create_tokens(inp);
         check_command(tok);
-        // printf("PIPES ===   %d  \n", count_pipes(tok));
     }
     return 0;
 }
