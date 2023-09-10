@@ -413,9 +413,9 @@ void terminate(){
         printf("Start time: %s",ctime(&process_list[j][1]));
         printf("Process id: %d\n",process_list[j][2]);
         printf("End time: %s",ctime(&process_list[j][3]));
-        // duration = difftime(process_list[j][3],process_list[j][1]);
+        duration = difftime(process_list[j][3],process_list[j][1]);
         // duration = (double)(process_list[j][3]-process_list[j][1]);
-        // printf("Duration: %f\n",duration);
+        printf("Duration: %f\n",duration);
         printf("\n");
     }
     return;
